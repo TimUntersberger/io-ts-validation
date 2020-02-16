@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "date-fns": "^2.9.0",
+    "fp-ts": "^2.5.0",
+    "io-ts": "^2.1.0",
+    "isemail": "^3.2.0"
+  },
+  "devDependencies": {
+    "ts-node": "^8.6.2",
+    "typescript": "^3.7.5"
+  }
+}
