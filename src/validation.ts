@@ -1,8 +1,5 @@
 import * as t from "io-ts";
 import { pipe as _pipe } from "fp-ts/lib/pipeable";
-import * as E from "fp-ts/lib/Either";
-
-type GetTypeReturnValue<T> = T extends t.Type<any, infer U> ? U : unknown;
 
 /**
  * Creates a new io-ts type, which is used for validating the input
@@ -12,110 +9,68 @@ type GetTypeReturnValue<T> = T extends t.Type<any, infer U> ? U : unknown;
  * @param encode A function that transformes the value to a value
  */
 
-type DefaultType = {
-  __tag: "defaultType";
-};
+type Validator<TInput, TOutput> = t.Type<TOutput, TInput, unknown>;
 
-type Validator<T, U> = t.Type<U, U, unknown>;
-
-export const createValidator = <R = DefaultType>(
-  validator: (value: any) => boolean,
+export const createValidator = <I, O = any>(
+  validator: (value: I) => boolean,
   getErrorMessage: (key: string) => string,
-  encode?: (value: any) => R
+  encode?: (value: I) => O
 ) => {
-  return <
-    T extends t.Any,
-    U = R extends DefaultType ? GetTypeReturnValue<T> : R
-  >(
-    type: T
-  ): Validator<T, U> =>
-    new t.Type(
-      "validator",
-      type.is,
-      function (value, c) {
-        const key = c[1].key;
-        const either = _pipe(
-          type.decode(value),
-          E.map((x) => {
-            return value && validator(x)
-              ? t.success(this.encode(x))
-              : t.failure(value, c, getErrorMessage(key));
-          }),
-          E.mapLeft((errors) => {
-            if (type.name === "validator") {
-              return t.failures(errors);
-            }
+  return (new t.Type<I, O, O>(
+    "validator",
+    t.any.is,
+    function (value, c) {
+      const key = c[1].key;
 
-            if (validator(value)) {
-              return t.success(this.encode(value));
-            }
-
-            return t.failure(value, c, getErrorMessage(key));
-          })
-        );
-        // Have to cast as any, because the wrong type gets infered
-        return E.getOrElse<t.Errors, any>((x) => x)(either as any);
-      },
-      (value) => {
-        return encode ? encode(type.encode(value)) : type.encode(value);
+      if (validator(value as any)) {
+        return t.success(this.encode(value));
+      } else {
+        return t.failure(value, c, getErrorMessage(key));
       }
-    );
+    },
+    (value: any) => {
+      return encode ? encode(value) : value;
+    }
+  ) as any) as Validator<I, O>;
 };
 
-export type LengthOfTuple<T extends any[]> = T extends { length: infer L }
-  ? L
-  : never;
-export type DropFirstInTuple<T extends any[]> = ((...args: T) => any) extends (
-  arg: any,
-  ...rest: infer U
-) => any
-  ? U
-  : T;
-export type LastInTuple<T extends any[]> = T[LengthOfTuple<
-  DropFirstInTuple<T>
->];
+export function pipe<I1, O1>(v1: Validator<I1, O1>): Validator<I1, O1>;
+export function pipe<I1, O1, O2>(
+  v1: Validator<I1, O1>,
+  v2: Validator<O1, O2>
+): Validator<I1, O2>;
+export function pipe<O1, I1, O2 extends I1, I2, O3 extends I2, I3>(
+  v1: Validator<I1, O1>,
+  v2: Validator<I2, O2>,
+  v3: Validator<I3, O3>
+): Validator<I1, O2 extends O3 ? O2 : O3>;
+export function pipe<I1, O1, O2, O3, O4>(
+  v1: Validator<I1, O1>,
+  v2: Validator<O1, O2>,
+  v3: Validator<O2, O3>,
+  v4: Validator<O3, O4>
+): Validator<I1, O4>;
+export function pipe<I1, O1, O2, O3, O4, O5>(
+  v1: Validator<I1, O1>,
+  v2: Validator<O1, O2>,
+  v3: Validator<O2, O3>,
+  v4: Validator<O3, O4>,
+  v5: Validator<O4, O5>
+): Validator<I1, O5>;
+export function pipe<I1, O1, O2, O3, O4, O5, O6>(
+  v1: Validator<I1, O1>,
+  v2: Validator<O1, O2>,
+  v3: Validator<O2, O3>,
+  v4: Validator<O3, O4>,
+  v5: Validator<O4, O5>,
+  v6: Validator<O5, O6>
+): Validator<I1, O6>;
+export function pipe(...vs: Validator<t.Any, t.Any>[]): t.Any {
+  let curr: t.Any;
 
-export function pipe<T, U1>(b: T, v1: (t: T) => U1): U1;
-export function pipe<T, U1, U2>(b: T, v1: (t: T) => U1, v2: (t: U1) => U2): U2;
-export function pipe<T, U1, U2, U3>(
-  b: T,
-  v1: (t: T) => U1,
-  v2: (t: U1) => U2,
-  v3: (t: U2) => U3
-): U3;
-export function pipe<T, U1, U2, U3, U4>(
-  b: T,
-  v1: (t: T) => U1,
-  v2: (t: U1) => U2,
-  v3: (t: U2) => U3,
-  v4: (t: U3) => U4
-): U4;
-export function pipe<T, U1, U2, U3, U4, U5>(
-  b: T,
-  v1: (t: T) => U1,
-  v2: (t: U1) => U2,
-  v3: (t: U2) => U3,
-  v4: (t: U3) => U4,
-  v5: (t: U4) => U5
-): U5;
-export function pipe<T, U1, U2, U3, U4, U5, U6>(
-  b: T,
-  v1: (t: T) => U1,
-  v2: (t: U1) => U2,
-  v3: (t: U2) => U3,
-  v4: (t: U3) => U4,
-  v5: (t: U4) => U5,
-  v6: (t: U5) => U6
-): U6;
-export function pipe(
-  b: t.Any,
-  v: (t: t.Any) => t.Any,
-  ...vs: ((t: t.Any) => t.Any)[]
-): t.Any {
-  let curr = v(b);
-
-  for (const validator of vs) {
-    curr = curr.pipe(validator(b));
+  for (const v of vs) {
+    if (curr) curr = curr.pipe(v);
+    else curr = v;
   }
 
   return curr;

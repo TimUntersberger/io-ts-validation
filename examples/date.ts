@@ -3,18 +3,14 @@ import * as e from "fp-ts/lib/Either";
 import * as v from "../src";
 
 const schema = t.type({
-  date: v.pipe(t.string, v.isDate("yyyy-MM-dd")),
-  num: v.pipe(t.string, v.isPositiveNumber),
+  date: v.isDate("yyyy-MM-dd"),
 });
 
-const result = schema.decode({
-  date: "2020-02-16",
-  num: "-1",
-});
+const result = schema.decode({});
 
 if (e.isRight(result)) {
   const decoded = result.right;
-  console.log(decoded.date.getTime(), decoded.num);
+  console.log(decoded.date.getTime());
 } else {
   const errors = result.left;
   console.log(errors);

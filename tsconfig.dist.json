@@ -1,0 +1,13 @@
+{
+  "exclude": ["examples"],
+  "compilerOptions": {
+    "module": "CommonJS",
+    "target": "ES3",
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "rootDir": "src",
+    "declaration": true,
+    "outDir": "dist",
+    "allowSyntheticDefaultImports": true
+  }
+}

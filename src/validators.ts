@@ -2,7 +2,7 @@ import { createValidator } from "./validation";
 import EmailValidator from "isemail";
 import * as d from "date-fns";
 
-export const required = createValidator(
+export const required = createValidator<any>(
   (value) => {
     return value != null && value != undefined;
   },
@@ -10,16 +10,22 @@ export const required = createValidator(
 );
 
 export const minLength = (length: number) =>
-  createValidator(
+  createValidator<ArrayLike<any>>(
     (value) => value.length >= length,
     (key) => `${key} has to be at least ${length} characters long`
   );
 
 export const maxLength = (length: number) =>
   createValidator(
-    (value) => value.length <= length,
+    (value: ArrayLike<any>) => value.length <= length,
     (key) => `${key} can't be longer than ${length} characters`
   );
+
+export const isString = createValidator(
+  (value) => typeof value == "string",
+  (key) => `${key} has to be a string`,
+  String
+);
 
 export const isNumber = createValidator(
   (value) => !isNaN(value),
@@ -40,7 +46,7 @@ export const isBoolean = createValidator(
 );
 
 export const isDate = (format: string) =>
-  createValidator(
+  createValidator<string>(
     (value) => d.isValid(d.parse(value, format, 0)),
     (key) => `${key} has to be a date`,
     (value) => {

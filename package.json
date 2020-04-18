@@ -1,6 +1,11 @@
 {
   "main": "dist/index.js",
+  "name": "io-ts-validations",
+  "version": "1.0.0",
   "typings": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc --build tsconfig.dist.json"
+  },
   "dependencies": {
     "date-fns": "^2.9.0",
     "fp-ts": "^2.5.0",
