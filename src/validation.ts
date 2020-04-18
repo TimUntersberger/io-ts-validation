@@ -1,7 +1,6 @@
 import * as t from "io-ts";
-import { pipe } from "fp-ts/lib/pipeable";
+import { pipe as _pipe } from "fp-ts/lib/pipeable";
 import * as E from "fp-ts/lib/Either";
-import { isBoolean } from "./validators";
 
 type GetTypeReturnValue<T> = T extends t.Type<any, infer U> ? U : unknown;
 
@@ -17,7 +16,7 @@ type DefaultType = {
   __tag: "defaultType";
 };
 
-type Validator<T, U> = t.Type<GetTypeReturnValue<T>, U, unknown>;
+type Validator<T, U> = t.Type<U, U, unknown>;
 
 export const createValidator = <R = DefaultType>(
   validator: (value: any) => boolean,
@@ -33,16 +32,16 @@ export const createValidator = <R = DefaultType>(
     new t.Type(
       "validator",
       type.is,
-      function(value, c) {
+      function (value, c) {
         const key = c[1].key;
-        const either = pipe(
+        const either = _pipe(
           type.decode(value),
-          E.map(x => {
+          E.map((x) => {
             return value && validator(x)
               ? t.success(this.encode(x))
               : t.failure(value, c, getErrorMessage(key));
           }),
-          E.mapLeft(errors => {
+          E.mapLeft((errors) => {
             if (type.name === "validator") {
               return t.failures(errors);
             }
@@ -55,9 +54,9 @@ export const createValidator = <R = DefaultType>(
           })
         );
         // Have to cast as any, because the wrong type gets infered
-        return E.getOrElse<t.Errors, any>(x => x)(either as any);
+        return E.getOrElse<t.Errors, any>((x) => x)(either as any);
       },
-      value => {
+      (value) => {
         return encode ? encode(type.encode(value)) : type.encode(value);
       }
     );

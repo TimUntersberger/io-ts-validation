@@ -1,4 +1,6 @@
 {
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
   "dependencies": {
     "date-fns": "^2.9.0",
     "fp-ts": "^2.5.0",
